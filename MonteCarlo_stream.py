@@ -16,7 +16,7 @@ st.header("Choose tickers and dates!")
 st.write('Please select the tickers you want to put in your portfolio. Then also specify the start and end dates.')
 tickers = ['AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'NFLX', 'V', 'WMT', 'MCD', 'GE', 'GS', 'CVX', 'XOM']
 
-selected_tickers = st.multiselect("Tickers:",tickers)
+selected_tickers = st.multiselect("Tickers:",tickers, default=['AAPL', 'MSFT'])
 
 start_date = st.date_input("Choose the start date:", datetime(2010,1,1).date())
 end_date = st.date_input("Choose the end date:", datetime.now().date())
