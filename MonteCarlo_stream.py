@@ -7,18 +7,25 @@ import streamlit as st
 from datetime import datetime, timedelta
 
 st.title("Monte Carlo on Stocks")
+st.header('Introduction to this project')
+st.write('This is a Monte Carlo stimulation dashboard. It will show the price, return, and correlations based on the tickers users selected.')
+st.write('The default period is form 2010-01-01 to today.')
+st.write("Then, after choosing the number of stimulation, it will start stimulating, resulting the performance and stock weights for the portfolio with the highest sharpe ratio.")
 
-st.header("Choose tickers!")
-tickers = ['AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'NFLX', 'VTI', 'SPY', 'JNJ', 'KO', 'XLK', 'XLF']
+st.header("Choose tickers and dates!")
+st.write('Please select the tickers you want to put in your portfolio. Then also specify the start and end dates.')
+tickers = ['AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'NFLX', 'V', 'WMT', 'MCD', 'GE', 'GS', 'CVX', 'XOM']
 
 selected_tickers = st.multiselect("Tickers:",tickers)
 
-start_date = datetime(2010,1,1).date()
-end_date = datetime.now().date()
-start_date_rf = end_date - timedelta(days=365)
+start_date = st.date_input("Choose the start date:", datetime(2010,1,1).date())
+end_date = st.date_input("Choose the end date:", datetime.now().date())
 
+
+start_date_rf = end_date - timedelta(days=365)
 IRX = yf.download('^IRX', start= start_date_rf, end = end_date)
 rf = IRX['Close'].pct_change().dropna().mean()
+
 
 
 Close = pd.DataFrame()
@@ -32,37 +39,33 @@ Return = Return.dropna()
 mean_sd_return = pd.DataFrame({'Daily Return': Return.mean(), 'std': Return.std()}).T
 mat_cor = Return.corr()
 
-#st!
-st.write('Price')
-st.line_chart(Close)
 
-# st!
-st.write('Returns')
-st.line_chart(Return)
+button1 = st.button('Submit')
 
-# st!
-st.write('Performance: mean return and standard deviation')
-st.table(mean_sd_return)
+if button1:
+    #st!
+    st.write('Price')
+    st.line_chart(Close)
 
+    # st!
+    st.write('Returns')
+    st.line_chart(Return)
 
-plt.figure(figsize= (5, 3))
-sns.heatmap(mat_cor, annot = True, cmap = 'coolwarm', fmt=".2f", annot_kws={"size": 6})
-plt.title('Correlation Heatmap')
-plt.show()
+    # st!
+    st.write('Performance: mean return and standard deviation')
+    st.table(mean_sd_return)
+    
+    st.write('Correlation Map')
+    fig1, ax1 = plt.subplots()
+    sns.heatmap(mat_cor, annot = True, cmap = 'coolwarm', fmt=".2f", annot_kws={"size": 6}, ax=ax1)
+    plt.title('Correlation Heatmap')
+    fig1.set_facecolor('black')
+    ax1.tick_params(colors='white', which='both')  # 'both' refers to minor and major axes
+    st.write(fig1)
+else:
+    st.write('Please click Submit to start.')
 
-# st!
-st.write('Correlation Map')
-fig1, ax1 = plt.subplots()
-sns.heatmap(mat_cor, annot = True, cmap = 'coolwarm', fmt=".2f", annot_kws={"size": 6}, ax=ax1)
-plt.title('Correlation Heatmap')
-fig1.set_facecolor('black')
-ax1.tick_params(colors='white', which='both')  # 'both' refers to minor and major axes
-st.write(fig1)
-
-T = (Return.index.max() - Return.index.min()).days
-
-
-st.header('Select number of Simulation')
+st.header('Select Number of Simulation')
 n_simulation = st.slider('Number of Simulation', 1000, 20000)
 button2 = st.button('Start Stimulating!')
 
@@ -97,10 +100,11 @@ if button2:
     st.bar_chart(simulation_output['sharpe'])
     st.write('Highest Sharpe Ratio:' + str(round(max(simulation_output['sharpe']),4)))
     
-    st.write('Performance under highest Sharpe Ratio')
+    st.header('Performance')
+    st.write('Under the highest Sharpe Ratio')
     st.table(maxSharpe_perform)
     
-    st.write('Weights for each stock')
+    st.header('Weights for each stock')
     st.bar_chart(maxSharpe_weights, x = 'ticker', y = 'weight')
 
 
